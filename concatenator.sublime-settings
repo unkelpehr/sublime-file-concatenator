@@ -1,0 +1,22 @@
+{
+    // Whether or not to apply the same intendation
+    // to the target file as the @import has.
+    "apply_intendation": true,
+
+    // concatenate on save.
+    "run_on_save": true,
+
+    // Which file-extensions that will be included in the "run_on_save"-concatenation. 
+    "run_on_save_extensions": ["js","css"],
+
+    // Look for @partsof's through the first N lines
+    // 0 means it will look thrugh the whole file.
+    "partof_line_portion": 15,
+    
+    // Output file formation
+    // If all of these are empty, or unspecified, we'll append .cat. before 
+    // the extension to prevent the source file from being overwritten.
+    "prefix_output_file": "",				// {prefix}output_file.js   
+    "suffix_output_file": "",				// output_file.js{suffix}
+    "prefix_output_file_extension": ".cat."	// output_file{ext_suffix}js
+}
