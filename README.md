@@ -3,9 +3,9 @@ Sublime File Concatenator
 
 Automatically concatenates all dependencies based on simple rules you specify in the referenced files.
 
-# Getting started #
+## Getting started ##
 
-## Using Package Control ##
+### Using Package Control ###
 The easiest way to get started is to install the package using [Sublime Package Control](https://sublime.wbond.net/).
 
 Open the pallete by pressing *CTRL + SHIFT + P* (Win, Linux) or *CMD + SHIFT + P (OS X*). Type **install** and the command palette should filter down **Package Control: Install Package**.
@@ -18,24 +18,24 @@ If you for some reason cannot or will not use [Package Control](https://sublime.
 
  1. Click the *Preferences > Browse Packages…* menu
  2. Browse up a folder and then into the *Installed Packages/ folder*
- 3. Download [bla-master](https://google.com/) and copy it into the *Installed Packages/* directory
+ 3. Download [master.zip](https://github.com/unkelpehr/sublime-file-concatenator/archive/master.zip) and copy it into the *Installed Packages/* directory
  4. Restart Sublime Text
 
-# Documentation #
+## Documentation ##
 
 There is only two commands you need to use this plugin: @import and @partof.
 
-##@import##
+###@import###
 xxx
 
-##@partof##
+###@partof###
 xxx
 
 *CTRL + SHIFT + C* or *CMD + Shift + C* will start the concatenation process. You can also specify concatenation on Save; this is enabled as default for JavaScript and CSS files. Check out the settings file via *Preferences -> Package Settings -> Concatenator -> Settings - User*.
 
-# Contribute! #
+## Contribute! ##
 
 
-## License
+### License ###
 Copyright (c) 2013 Jonas Boman <unkelpehr@gmail.com>
 Licensed under the MIT license.
