@@ -35,4 +35,9 @@ xxx
 *CTRL + SHIFT + C* or *CMD + Shift + C* will start the concatenation process. You can also specify concatenation on Save; this is enabled as default for JavaScript and CSS files. Check out the settings file via *Preferences -> Package Settings -> Concatenator -> Settings - User*.
 
 ## Contribute! ##
-
+ 1. Fork it.
+ 2. Create a branch (git checkout -b sublime_file_concatenator)
+ 3. Commit your changes (git commit -am "Fixed regex...")
+ 4. Push to the branch (git push origin sublime_file_concatenator)
+ 5. Open a Pull Request
+ 5. Tada!
