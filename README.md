@@ -6,6 +6,7 @@ Automatically concatenates all dependencies based on simple rules you specify in
 ## Getting started ##
 
 ### Using Package Control ###
+(In the workings....)
 The easiest way to get started is to install the package using [Sublime Package Control](https://sublime.wbond.net/).
 
 Open the pallete by pressing *CTRL + SHIFT + P* (Win, Linux) or *CMD + SHIFT + P (OS X*). Type **install** and the command palette should filter down **Package Control: Install Package**.
@@ -35,7 +36,3 @@ xxx
 
 ## Contribute! ##
 
-
-### License ###
-Copyright (c) 2013 Jonas Boman <unkelpehr@gmail.com>
-Licensed under the MIT license.
