@@ -7,73 +7,91 @@ SETTINGS_FILE = "concatenator.sublime-settings"
 # Concatenator
 #
 class ConcatenatorCommand(sublime_plugin.TextCommand):
+    message_header = 'Sublime File Concatenator\n====================\n\n' 
     concatenated_files  = []
+    files_not_found     = []
     output_filename     = ''
 
+    maximum_recursion = 10
+    current_recursion = 0
+
     #
-    # We'll use the same regex rules for matching @imports and @partofs to keep it concistent.
+    # We'll use the excct same regex for matching @imports and @partofs to keep it concistent.
     # 
-    re_import = '(?![\r\n])+(\s*)(?://|#|/\*)?(?:\s*)@import(?:[\s|url]*)\(\'(.+)\'\)(;?)(\*/)?'
-    re_partof = '(?![\r\n])+(\s*)(?://|#|/\*)?(?:\s*)@partof(?:[\s|url]*)\(\'(.+)\'\)(;?)(\*/)?'
 
     re_import = re.compile(r'''
         (                       # Full replace part
             (?:\s*[\r\n])*      # Don't match linebreaks or intendated linebreaks
             (\s*)               # Capture any whitespace (intendation)
-            (?://|\#|/\*)?      # Non-capture any possible beginning of comment
+            (?://|\#|\/\*)?     # Non-capture any possible beginning of comment
             (?:\s*)             # Whitespace zero or more times
             @import             # Type (import/partof)
             (?:[\s|url])*       # Match whitespace or 'url' zero or more times
             \(\'(.+)\'\)        # Match the file part ('myfile.js') 1 or more times
-            (?:\;|\*|$)?        # Match ending comment, or end of line
+            (?:\;|\*/|$)?       # Match ending comment, or end of line
         )
     ''', re.VERBOSE | re.MULTILINE | re.IGNORECASE)
 
-    re_partof2 = re.compile(r'''
+    re_partof = re.compile(r'''
         (                       # Full replace part
             (?:\s*[\r\n])*      # Don't match linebreaks or intendated linebreaks
             (\s*)               # Capture any whitespace (intendation)
-            (?://|\#|/\*)?      # Non-capture any possible beginning of comment
+            (?://|\#|\/\*)?     # Non-capture any possible beginning of comment
             (?:\s*)             # Whitespace zero or more times
-            @import             # Type (import/partof)
+            @partof             # Type (import/partof)
             (?:[\s|url])*       # Match whitespace or 'url' zero or more times
             \(\'(.+)\'\)        # Match the file part ('myfile.js') 1 or more times
-            (?:\;|\*|$)?        # Match ending comment, or end of line
+            (?:\;|\*/|$)?       # Match ending comment, or end of line
         )
     ''', re.VERBOSE | re.MULTILINE | re.IGNORECASE)
 
     #
     # run-method
-    # Executed from key-bindings, menu, etc,
+    # Executed from key-bindings, menu, etc
     #
-    def run(self, edit):
+    def run(self, edit, targetFile = False):
         self.is_running = True
+
+        if targetFile == False:
+            targetFile = self.view.file_name()
 
         # Reset
         self.concatenated_files  = []
+        self.files_not_found     = []
         self.output_filename     = ''
+        self.current_recursion = 0
 
-        if self.view.find(self.re_partof, 0):
-            content = self.view.substr(sublime.Region(0, self.view.size()))
-            portion = sublime.load_settings(SETTINGS_FILE).get('partof_line_portion', 15)
+        # Look for @partof's on the first N lines
+        content = self.file_get_contents(targetFile, False)
+        portion = sublime.load_settings(SETTINGS_FILE).get('partof_line_portion', 15)
+        content = '\n'.join(content.splitlines() if portion == 0 else content.splitlines()[:portion])
+        matches = self.re_partof.findall(content)
 
-            if portion == 0: 
-                lines = content.splitlines()
-            else:
-                lines = content.splitlines()[:portion]
+        # Look out for infinite loops
+        if self.current_recursion >= self.maximum_recursion:
+            sublime.error_message(self.message_header + 'Recursion limit (' + str(self.maximum_recursion) + ') met')
+            return
+        self.current_recursion += 1
 
-            content = '\n'.join(lines)
+        # @partof or @import?
+        if len(matches) > 0:
+            for match in matches:
+                fullmatch, indentation, filename = match
 
-            for match in re.finditer(self.re_partof, content):
-                fullmatch = match.group(0)
-                indentation = match.group(1)
-                filename = match.group(2)
-
-                self.concat(os.sep.join(self.view.file_name().split(os.sep)[0:-1]) + os.sep + filename)
+                self.run(self, os.sep.join(targetFile.split(os.sep)[0:-1]) + os.sep + filename)
         else:
-            self.concat(self.view.file_name())
+            self.concat(targetFile)
 
         self.is_running = False
+
+        # Notify about files not found
+        if sublime.load_settings(SETTINGS_FILE).get('popup_files_not_found', True) == True:
+            num_files_not_found = len(self.files_not_found)
+            str_files_not_found = ''
+            if num_files_not_found > 0:
+                for oList in self.files_not_found:
+                    str_files_not_found += oList[0] + ', referer: ' + oList[1] + '\n'
+                sublime.message_dialog(self.message_header + str(num_files_not_found) + ' referenced ' + ('files' if num_files_not_found > 1 else 'file') + ' could not be found:\n\n' + str_files_not_found)
 
         # Update status message
         leftovers = len(self.concatenated_files) - 3
@@ -148,22 +166,30 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
             for match in matches:
                 fullmatch, indentation, filename = match
 
-                self.concatenated_files.append(filename)
+                tmp_filepath = ''.join([filepath, os.sep, filename])
+                lines = ''
 
-                # Get contents, by list of lines
-                lines = self.file_get_contents(''.join([filepath, os.sep, filename]), True)
+                # Skip if the file does not exist
+                if os.path.isfile(tmp_filepath):
+                    # Append to history
+                    self.concatenated_files.append(filename)
 
-                # Apply indentation
-                if settings.get('apply_intendation', False) == True:
-                    lines = [indentation + line for line in lines]
+                    # Get contents, by list of lines
+                    lines = self.file_get_contents(tmp_filepath, True)
 
-                # Convert to string
-                lines = ''.join(lines).encode("utf-8")
+                    # Apply indentation
+                    if settings.get('apply_intendation', False) == True:
+                        lines = [indentation + line for line in lines]
 
-                # Remove all instances of @partof
-                lines = re.sub(self.re_partof, '', lines)
+                    # Convert to string
+                    lines = ''.join(lines).encode("utf-8")
 
-                # And replace the content
+                    # Remove all instances of @partof
+                    lines = re.sub(self.re_partof, '', lines)
+                else:
+                    self.files_not_found.append(["'" + filename + "'", "'" + rootFile.split(os.sep)[-1] + "'"])
+
+                # Replace the full match with the target
                 content = content.replace(fullmatch, lines)
 
             # Copy the raw source into the new file
@@ -171,8 +197,6 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 
             # Close handle
             handle.close()
-        else:
-            print 'Concatenator: No commands found in ' + rootFile
 
 #
 # Event listener for post-save
@@ -181,7 +205,7 @@ class ConcatenatorEventListener(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
         settings = sublime.load_settings(SETTINGS_FILE)
-            
+        
         # Should the concat on save?
         if settings.get('run_on_save', False) == False:
             return

@@ -1,4 +1,8 @@
 {
+    // Raises a popup if one or more referenced files 
+    // could not be found.
+    "popup_files_not_found": true,
+
     // Whether or not to apply the same intendation
     // to the target file as the @import has.
     "apply_intendation": true,

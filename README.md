@@ -41,3 +41,17 @@ xxx
  4. Push to the branch (git push origin sublime_file_concatenator)
  5. Open a Pull Request
  5. Tada!
+
+## Changelog ##
+###v0.8.5###
+ 1. Added changelog
+ 2. Added popup for referenced files that could not be found.
+ 3. Added 'popup_files_not_found'-setting
+ 4. Added tests
+ 5. Fixed bug that didn't reset certain variables each run
+ 6. Cleaned up the regex's and the general code a bit
+ 7. **Added support for multi-level @partof**
+
+
+###v0.8.0###
+Initial release
