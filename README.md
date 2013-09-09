@@ -1,12 +1,24 @@
 Sublime File Concatenator
 =========================
 
+This project has been put on ice due to recent lack of time. Contributions will be handled but I can at the moment not spend more time developing it.
+-------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
 Automatically concatenates all dependencies based on simple rules you specify in the referenced files.
 
 ## Getting started ##
 
 ### Using Package Control ###
-(In the workings....)
+(Not supported)
 The easiest way to get started is to install the package using [Sublime Package Control](https://sublime.wbond.net/).
 
 Open the pallete by pressing *CTRL + SHIFT + P* (Win, Linux) or *CMD + SHIFT + P (OS X*). Type **install** and the command palette should filter down **Package Control: Install Package**.
