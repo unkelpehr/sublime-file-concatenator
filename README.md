@@ -1,17 +1,6 @@
 Sublime File Concatenator
 =========================
-
-This project has been put on ice due to recent lack of time. Contributions will be handled but I can at the moment not spend more time developing it.
 -------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
 
 Automatically concatenates all dependencies based on simple rules you specify in the referenced files.
 
@@ -35,16 +24,123 @@ If you for some reason cannot or will not use [Package Control](https://sublime.
  4. Restart Sublime Text
 
 ## Documentation ##
+The plugin works by analysing the targeted file for certain commands. If found, it will be executed and stripped from the source code before writing the finished concatenated file. There are four commands available:
 
-There is only two commands you need to use this plugin: @import and @partof.
 
-###@import###
-xxx
+###@import(*filepath*)###
+The only command you'll really need for small projects.
 
-###@partof###
-xxx
+Replaces the @import(*filepath*)-line with the contents of *filepath*. *filepath* can be either relative or absolute.
 
-*CTRL + SHIFT + C* or *CMD + Shift + C* will start the concatenation process. You can also specify concatenation on Save; this is enabled as default for JavaScript and CSS files. Check out the settings file via *Preferences -> Package Settings -> Concatenator -> Settings - User*.
+**C:\wwwroot\main.js**
+```
+// Dependency1.js
+@import('components/dependency1.js')
+```
+
+**C:\wwwroot\components\dependency1.js**
+```
++-----------------------------+
+|                             |
+| Hello! I am dependency1.js! |
+|                             |
++-----------------------------+
+```
+
+**C:\wwwroot\main.cat.js**
+```
+// Dependency1.js
++-----------------------------+
+|                             |
+| Hello! I am dependency1.js! |
+|                             |
++-----------------------------+
+```
+
+###@partof(*filepath*)###
+Tells the intepreter to look for references of this file in *filepath*.
+This allows for the concatenation progress to start from both the parent (main.js) and the child (dependency1.js):
+**dependency1.js**
+```
+@partof('../main.js')
++-----------------------------+
+|                             |
+| Hello! I am dependency1.js! |
+|                             |
++-----------------------------+
+```
+
+###@saveto(*filepath*)###
+The default behaviour is to save the concatenated file in the same directory as the source file.
+You can easily specify an alternative path by using the @saveto-command:
+
+**C:\wwwroot\main.js**
+```
+// Dependency1.js
+@import('components/dependency1.js')
+@saveto('builds/main.js')
+```
+
+In the example above we also gave it a specific name. If we had just specified the 'builds/'-folder the name given had been as per the "tpl_output_filename-setting" (more on that below).
+
+If the directory does not exist the plugin will ask if you want it to create it for you.
+
+###@option(*key*, *value*)###
+Sublime File Concatenator has very a extensive and flexible settings file. But because of the nature of this plugin, all settings can't apply very good to all files and projects at all times.
+
+By using the @option-command you can temporarily overwrite the global plugin settings.
+Settings specified via @option only applies the file that is currently being handled and gets removed when the file has finished parsing or when a value of "default" has been passed.
+
+**C:\wwwroot\main.js**
+```
+// Dependency1.js
+@import('components/dependency1.js')
+@saveto('builds/') // Here we choose only to specify an directory for output
+@option('tpl_output_filename', '{{this.fileroot}}-{{system.date}}.{{this.extension}}')
+```
+
+**C:\wwwroot\builds\main-2014-05-26.js**
+```
+// Dependency1.js
++-----------------------------+
+|                             |
+| Hello! I am dependency1.js! |
+|                             |
++-----------------------------+
+```
+
+In the example above we also gave it a specific name. If we had just specified the 'builds/'-folder the name given had been as per the "tpl_output_filename-setting" (more on that below).
+
+###glob:###
+This magic prefix activates [Python's glob module](https://docs.python.org/2/library/glob.html) and passes your argument directly to it. Whatever comes out, gets imported.
+
+**C:\wwwroot\main.js**
+```
+// My dependencies:
+@import('glob:components/*.js') // Import all Javascript-files in the components-directory 
+@saveto('builds/')
+@option('tpl_output_filename', '{{this.fileroot}}-{{system.date}}.{{this.extension}}')
+```
+**C:\wwwroot\builds\main-2014-05-26.js**
+```
+// My dependencies:
++-----------------------------+
+|                             |
+| Hello! I am dependency1.js! |
+|                             |
++-----------------------------+
++-----------------------------+
+|                             |
+| Hello! I am dependency2.js! |
+|                             |
++-----------------------------+
+```
+
+*CTRL + SHIFT + C* or *CMD + Shift + C* will start the concatenation process. You can also specify concatenation on Save. Check out the settings file via *Preferences -> Package Settings -> File Concatenator -> Settings - User*.
+
+
+###The settings file###
+To be continued...
 
 ## Contribute! ##
  1. Fork it.
