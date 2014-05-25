@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 import re
 import os
+import time
 import ntpath
 import glob
 
