@@ -1,0 +1,93 @@
+/**
+ * Sublime File Concatenator
+ * 
+ * Usage:
+ *      @import('dependency.js') will replace the @import-line with the contents of dependency.js
+ *      @partof('my_library.js') will replace the @import-line in my_library.js with the contents of the current file
+ *      @option('trim_parents', false) will temporarily overwrite the specified plugin setting for the current file 
+ *      @method('glob:/dir2/*') prefixing paths with 'glob:' will activate glob functionality
+ *      @saveto('../../lib.js') will traverse two directories up and save the current file as "lib.js"
+ *      @saveto('C:\wwwroot\') will save the current file as per the "tpl_output_filename"-setting, but in the wwwroot-folder
+ * 
+ * For a more in-depth explanation please visit the project's site:
+ * https://github.com/unkelpehr/sublime-file-concatenator
+ */
+{
+    // Whether or not to apply the same intendation to the target file as the @import-line has.
+    "apply_intendation": true,
+
+    // Starts concatenation on file save
+    "run_on_save": true,
+
+    // Which file extensions that will be included in the "run_on_save"-concatenation. 
+    "run_on_save_extensions": ["js", "css"],
+
+    // If set to true, strips whitespace characters from the beginning and end before writing the finished concatenated file to disc.
+    "trim_parents": true,
+    
+    // If set to true, strips whitespace characters from the beginning and end before inserting the referenced file into the concatination file.
+    "trim_children": true,
+
+    // Date and time formats used in the templates
+    // For complete directives please consult:
+    // Sublime 2.x: https://docs.python.org/2/library/time.html?highlight=time#time.strftime
+    // Sublime 3.x: https://docs.python.org/3.3/library/time.html?highlight=time#time.strftime
+    "date_format": "%Y-%m-%d", // yyyy-mm-dd
+    "time_format": "%H:%M:%S", // hh-mm-ss
+
+    // Variables related to the concatenation is available and is specified in "{{mustache_style}}".
+    // 
+    // There are several namespaces to fetch information from, altough all are not accessable at all times.
+    // Check the individual template settings below to see which you can use.
+    // 
+    // Namespaces:
+    //      this:    Information about the file that is currently being handled
+    //      referer: Information about the file that refered the file that is currently being handled. If there is no referer, the this-namespace will be used instead.
+    //      source:  Information about the file that triggered the concatenation progress (i.e. the file you saved)
+    //      system:  Information about the environment, e.g. system.platform (window/linux/osx), system.arch (x32/x64)
+    //      result:  Information about the finished concatenation progress, e.g. result.runtime (0.03), result.num_referenced_files (3 files)
+    //
+    // The available variables are:
+    //      this/referer/source: {
+    //          dirname:        (C:\source)\file.js
+    //          filename:       C:\source\(file.js)
+    //          fileroot:       C:\source\(file).js
+    //          extension:      C:\source\file.(js)
+    //          realpath:       (C:\source\file.js)
+    //          working_dir:    As specified in the argument. The directory to start from.
+    //      }
+    //
+    //      system: {
+    //          time:           Returns the current time formatted as per the "time_format"-setting 
+    //          date:           Returns the current date formatted as per the "date_format"-setting
+    //          platform:       Returns the platform, which may be "osx", "linux" or "windows"
+    //          arch:           Returns the CPU architecture, which may be "x32" or "x64"
+    //          version:        Returns the current Sublime build number
+    //      }
+    //
+    //      result: {
+    //          num_referenced_files:   "1 file", "2 files"
+    //          referenced_files_size:  "19.4 KB"
+    //          written_filenames:      CSV containing the 3 first filenames that were written to disc, followed by "and x more", e.g. "'file1.js', 'file2.js', 'file3.js' and 3 more"
+    //          referenced_filenames:   CSV containing the 3 first filenames that was referenced in the progress, followed by "and x more", e.g. "'file1.js', 'file2.js', 'file3.js' and 3 more"
+    //          runtime:                Float representingen the number of seconds the whole concatenation progress took, e.g. "0.03", "1.43"
+    //      }
+
+    // The header respectively footer templates gets inserted at the end and beginning of each concatenated file.
+    // Available namespaces: this[X], referer[/], source[X], system[X], result[ ]
+    "tpl_parent_header": "/**! BOF Parent file {{system.time}}: {{this.filename}} ({{this.filesize}}), referer: {{referer.filename}}, last modified {{this.lastmod_date}} {{this.lastmod_time}} */\n",
+    "tpl_parent_footer": "\n/**! EOF Parent file {{this.filename}} */\n\n",
+
+    // The header respectively footer templates gets inserted at the end and beginning of each imported file.
+    // Available namespaces: this[X], referer[X], source[X], system[X], result[ ]
+    "tpl_child_header": "/**! BOF {{system.time}}: {{this.filename}} ({{this.filesize}}), referer: {{referer.filename}}, last modified {{this.lastmod_date}} {{this.lastmod_time}} */\n",
+    "tpl_child_footer": "\n/**! EOF {{this.filename}} */\n\n",
+
+    // The template used for naming the output file
+    // Available namespaces: this[X], referer[X], source[X], system[X], result[ ]
+    "tpl_output_filename": "{{this.fileroot}}.cat.{{this.extension}}",
+
+    // 
+    // Available namespaces: this[ ], referer[ ], source[X], system[X], result[X]
+    "tpl_status_message": "Concatenated {{result.num_referenced_files}} ({{result.referenced_files_size}}) files into {{result.written_filenames}} ({{result.runtime}} sec, {{result.num_reused_files}} reused}"
+}
