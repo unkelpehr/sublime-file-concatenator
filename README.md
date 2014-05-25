@@ -1,5 +1,4 @@
 Sublime File Concatenator
-=========================
 -------------------------------------------------------------------------------------------------------------
 
 Automatically concatenates all dependencies based on simple rules you specify in the referenced files.
