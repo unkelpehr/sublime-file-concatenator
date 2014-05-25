@@ -9,7 +9,7 @@
                 "children":
                 [
                     {
-                        "caption": "Concatenator",
+                        "caption": "File Concatenator",
                         "children":
                         [
                             {
@@ -17,7 +17,7 @@
                                 "command": "open_file",
                                 "args":
                                 {
-                                    "file": "${packages}/concatenator/concatenator.sublime-settings"
+                                    "file": "${packages}/FileConcatenator/FileConcatenator.sublime-settings"
                                 }
                             },
                             {
@@ -25,7 +25,7 @@
                                 "command": "open_file",
                                 "args":
                                 {
-                                    "file": "${packages}/User/concatenator.sublime-settings"
+                                    "file": "${packages}/User/FileConcatenator.sublime-settings"
                                 }
                             }
                         ]
