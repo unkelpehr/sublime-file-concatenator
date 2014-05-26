@@ -4,6 +4,7 @@ Sublime File Concatenator
 Automatically concatenates all dependencies based on simple rules you specify in the referenced files.
 
 **Main features:**
+
 1. Multi-level importing: @import(*filepath*)
 2. Multi-level referencing: @partof(*filepath*)
 3. Importing through glob: @import('glob:components/*.js)
@@ -65,6 +66,7 @@ The only command you'll really need for small projects. Replaces the @import(*fi
 ###@partof(*filepath*)###
 Tells the intepreter to look for references of this file in *filepath*.
 This allows for the concatenation progress to start from both the parent (main.js) and the child (dependency1.js):
+
 **dependency1.js**
 ```
 @partof('../main.js')
