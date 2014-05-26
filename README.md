@@ -171,6 +171,7 @@ There is *a lot* of documentation in the settings file. Don't be put of though, 
  9. Added glob:-prefix
  10. Added multi-level @import
  11. Added optimizations which greatly improved overall runtime
+ 12. Added Sublime 3.x support
      
 ###v0.8.5###
  1. Added changelog
