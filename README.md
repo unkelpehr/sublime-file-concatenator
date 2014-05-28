@@ -6,13 +6,12 @@ Automatically concatenates all dependencies based on simple rules you specify in
 **Main features:**
 
 1. Multi-level importing: @import(*filepath*)
-2. Multi-level referencing: @partof(*filepath*)
-3. Importing through glob: @import('glob:components/*.js)
-4. Per-file specific settings: @option('setting_key', 'new_setting_value')
+2. File referencing: @partof(*filepath*)
+3. Importing through glob: @import('glob:components/*.js')
+4. "JIT-settings": @option('setting_key', 'new_setting_value')
 5. Per-file output-control: @saveto('../../lib.js')
 6. Generalized templating for controlling headers, footers, output filenames and more
-7. Small (~400 SLOC)
-8. Compatible through Sublime 2.x to Sublime 3.x 
+7. Compatible through Sublime 2.x to Sublime 3.x 
 
 ## Getting started ##
 
@@ -92,7 +91,7 @@ In the example above we also gave it a specific name. If we had just specified t
 
 If the directory does not exist the plugin will ask if you want it to create it for you.
 
-###@option(*key*, *value*)###
+###@option(*key*, *value*, *recursive=False*)###
 Sublime File Concatenator has very a extensive and flexible settings file. But because of the nature of this plugin, all settings can't apply very good to all files and projects at all times.
 
 By using the @option-command you can temporarily overwrite the global plugin settings.
@@ -114,6 +113,32 @@ Settings specified via @option only apply the file that is currently being handl
 | Hello! I am dependency1.js! |
 |                             |
 +-----------------------------+
+```
+
+####Recursive flag####
+If we want all children to be affected by the JIT-setting we can turn on recursion by passing True as a third argument:
+
+**C:\wwwroot\main.js**
+```
+// Dependency1.js
+@import('components/dependency1.js')
+@saveto('builds/') // Here we choose only to specify an directory for output
+@option('tpl_output_filename', '{{this.fileroot}}-{{system.date}}.{{this.extension}}')
+
+@option('tpl_child_header', '/**! BOF {{system.time}}: {{this.filename}} ({{this.filesize}}) */\n', True)
+@option('tpl_child_footer', '\n/**! EOF {{this.filename}} */\n\n', True)
+```
+
+**C:\wwwroot\builds\main-2014-05-26.js**
+```
+// Dependency1.js
+/**! BOF 19:48: dependency1.js (159.0 B) */
++-----------------------------+
+|                             |
+| Hello! I am dependency1.js! |
+|                             |
++-----------------------------+
+/**! EOF dependency1.js */
 ```
 
 ###glob:###
