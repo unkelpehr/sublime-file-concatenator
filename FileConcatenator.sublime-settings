@@ -13,11 +13,15 @@
  * https://github.com/unkelpehr/sublime-file-concatenator
  */
 {
+    // If set to True, a dialog at the end of each concatenation will pop showing the details of the concatenation process
+    // This dialog will always be shown if an error was encountered
+    "verbose": false,
+
     // Whether or not to apply the same intendation to the target file as the @import-line has.
     "apply_intendation": true,
 
     // Starts concatenation on file save
-    "run_on_save": true,
+    "run_on_save": false,
 
     // Which file extensions that will be included in the "run_on_save"-concatenation. 
     "run_on_save_extensions": ["js", "css"],
