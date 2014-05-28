@@ -4,7 +4,8 @@
  * Usage:
  *      @import('dependency.js') will replace the @import-line with the contents of dependency.js
  *      @partof('my_library.js') will replace the @import-line in my_library.js with the contents of the current file
- *      @option('trim_parents', false) will temporarily overwrite the specified plugin setting for the current file 
+ *      @option('date_format', "%d/%m/%Y") will temporarily overwrite the specified plugin setting for the current file 
+ *      @option('date_format', "%d/%m/%Y", True) will temporarily overwrite the specified plugin setting for the current file and all of its children
  *      @method('glob:/dir2/*') prefixing paths with 'glob:' will activate glob functionality
  *      @saveto('../../lib.js') will traverse two directories up and save the current file as "lib.js"
  *      @saveto('C:\wwwroot\') will save the current file as per the "tpl_output_filename"-setting, but in the wwwroot-folder
