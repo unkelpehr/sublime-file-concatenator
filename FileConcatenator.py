@@ -11,7 +11,7 @@ MESSAGE_HEADER  = 'Sublime File Concatenator\n===========================\n\n'
 
 MSG_TYPE = {}
 MSG_TYPE['INFO'] 	= 1
-MSG_TYPE['WARNING'] = 2
+MSG_TYPE['WARNING'] 	= 2
 MSG_TYPE['ERROR'] 	= 3
 MSG_TYPE['FATAL'] 	= 4
 
@@ -72,7 +72,7 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 		self.log_list_types[4] = 0 # Fatal
 
 	# The logging method used throughout the plugin
-	def log (self, msg_type, message, file_dict = False):
+	def log (self, msg_type, message, file_dict = 0):
 		log_entry = ''
 
 		if msg_type == MSG_TYPE['INFO']:
@@ -99,26 +99,42 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 		self.log_list_types[msg_type] += 1
 
 	def get_jit_setting (self, key, file_dict):
-		file_key = file_dict['realpath'] if file_dict else 0
+		if not file_dict:
+			return
+		
+		file_key = file_dict['realpath']
 
-		if file_dict and file_key in self.jit_settings_dict and key in self.jit_settings_dict[file_key]:
+		if file_key in self.jit_settings_dict and key in self.jit_settings_dict[file_key]:
 			return self.jit_settings_dict[file_key][key]
-		elif key in self.jit_rec_settings_dict:
-			return self.jit_rec_settings_dict[key]
+		else:
+			for file_key in self.jit_rec_settings_dict:
+				if key in self.jit_rec_settings_dict[file_key]:
+					return self.jit_rec_settings_dict[file_key][key]
 
-	def push_jit_setting (self, key, value, recursive, file_dict):
-		file_key = False
+	def push_jit_setting (self, key, value, recursive, file_dict = 0):
+		if not file_dict:
+			return
+
+		file_key = file_dict['realpath']
+
 		log_msgtype = MSG_TYPE['INFO']
 		log_message = ''
 
-		wrote = True
 		overwrote = False
 
-		if not recursive and file_dict:
-			file_key = file_dict['realpath']
+		if recursive:
+			if not file_key in self.jit_rec_settings_dict:
+				self.jit_rec_settings_dict[file_key]  = {}
 
+			if key in self.jit_rec_settings_dict[file_key]:
+				overwrote = True
+				overwrote_val = self.jit_rec_settings_dict[file_key][key]
+				overwrote_rec = 'True'
+
+			self.jit_rec_settings_dict[file_key][key] = value
+		else:
 			if not file_key in self.jit_settings_dict:
-				self.jit_settings_dict[file_key] = {}
+				self.jit_settings_dict[file_key]  = {}
 
 			if key in self.jit_settings_dict[file_key]:
 				overwrote = True
@@ -126,54 +142,46 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 				overwrote_rec = 'False'
 
 			self.jit_settings_dict[file_key][key] = value
-		
-		elif recursive:
-			if key in self.jit_rec_settings_dict:
-				overwrote = True
-				overwrote_val = self.jit_settings_dict[key]
-				overwrote_rec = 'True'
-
-			self.jit_rec_settings_dict[key] = value
-		else:
-			wrote = False
 
 		if overwrote:
 			log_message = 'Overwrote JIT-setting {"' + key + '": "' + overwrote_val + '", recursive="' + overwrote_rec + '"}, {"' + key + '": "' + value + '", recursive="' + str(recursive) + '"}'
-		elif wrote:
-			log_message = 'Pushed JIT-setting {"' + key + '": "' + value + '", recursive="' + str(recursive) + '"}'
 		else:
-			log_msgtype = MSG_TYPE['WARNING']
-			log_message = 'Could not save JIT-setting {"' + key + '": "' + value + '", recursive="' + str(recursive) + '"}'
+			log_message = 'Pushed JIT-setting {"' + key + '": "' + value + '", recursive="' + str(recursive) + '"}'
 
 		self.log(log_msgtype, log_message, file_dict)
 
-	def clear_jit_setting (self, key, recursive, file_dict):
+	def clear_jit_setting (self, key, recursive, file_dict = 0):
+		if not file_dict:
+			return
+		
 		file_key = file_dict['realpath']
 
-		log_msgtype = MSG_TYPE['WARNING']
-		log_message = 'Tried to clear non-existing JIT-setting "' + key + '"'
+		if not key == '*':
+			log_msgtype = MSG_TYPE['WARNING']
+			log_message = 'Tried to clear non-existing JIT-setting "' + key + '"'
+		else:
+			log_msgtype = MSG_TYPE['INFO']
+			log_message = ''
 
-		if key == '*':
+		if recursive:
+			if file_key in self.jit_rec_settings_dict:
+				if key == '*':
+					self.jit_rec_settings_dict[file_key].clear()
+					log_message = 'Cleared all JIT-settings recursively'
+				elif key in self.jit_rec_settings_dict[file_key]:
+					log_message = 'Cleared recursive JIT-setting "' + key + '"'
+					self.jit_rec_settings_dict[file_key].pop(key, None)
+		else:
 			if file_key in self.jit_settings_dict:
-				self.jit_settings_dict[file_key].clear()
+				if key == '*':
+					self.jit_settings_dict[file_key].clear()
+					log_message = 'Cleared all non-recursive JIT-settings recursively'
+				elif key in self.jit_settings_dict[file_key]:
+					log_message = 'Cleared non-recursive JIT-setting "' + key + '"'
+					self.jit_settings_dict[file_key].pop(key, None)
 
-			if recursive:
-				self.jit_rec_settings_dict.clear()
-
-			log_msgtype = MSG_TYPE['INFO']
-			log_message = 'Cleared all JIT-settings recursively' if recursive else 'Cleared all non-recursive JIT-settings'
-		elif file_key in self.jit_settings_dict and key in self.jit_settings_dict:
-			self.jit_settings_dict[file_key].pop(key, None)
-
-			log_msgtype = MSG_TYPE['INFO']
-			log_message = 'Cleared non-recursive JIT-setting ' + key
-		elif key in self.jit_rec_settings_dict:
-			self.jit_rec_settings_dict.pop(key, None)
-
-			log_msgtype = MSG_TYPE['INFO']
-			log_message = 'Cleared recursive JIT-setting ' + key
-
-		self.log(log_msgtype, log_message, file_dict)
+		if log_message:
+			self.log(log_msgtype, log_message, file_dict)
 
 	# A helper function to retrieve the behaviour of this plugin.
 	# Returns a JIT-setting if available, otherwise a global
@@ -207,7 +215,7 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 				.replace('\\r', '\r') 			# ASCII Carriage Return (CR)
 				.replace('\\t', '\t') 			# ASCII Horizontal Tab (TAB)
 				.replace('\\v', '\v') 			# ASCII Vertical Tab (VT)
-				.replace('{!~db~!}', '\\\\') 	# Revert escaped backslashes
+				.replace('{!~db~!}', '\\') 		# Revert escaped backslashes
 		)
 
 	# Helper method to return the contents of a file
@@ -299,7 +307,7 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 				elif namespace == 'result':
 					owner = valueDict[namespace]
 					tmp = 0
-					display_x_files = 2
+					display_x_files = 3
 
 					if key == 'num_referenced_files':
 						tmp = len(owner['referenced_file_dicts'])
@@ -350,6 +358,11 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 		if not saveto_file_dict and os.path.isfile(output_realpath) and target_file_dict['filename'] == output_filename:
 			return self.log(MSG_TYPE['FATAL'], 'A file already exist at the path specified and the name equals to the original. I will not continue at risk of overwriting the original.\n\nEvaluated filename:\n' + output_filename + '\n\nDirectory:\n' + target_file_dict['dirname'] + '\n\n' + 'Please look over your settings.', target_file_dict)
 
+		# If the source´s filename equals to the target, this means that this is the last write.
+		# Depending on current settings, trim the content.
+		if (source_file_dict['filename'], target_file_dict['filename']) and self.setting(target_file_dict, 'trim_output'):
+			content = content.strip()
+
 		# The w-flag will create a new file or overwrite an existing file.
 		with open(output_realpath, 'w') as handle:
 			handle.write(content)
@@ -376,8 +389,10 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 			target_file_dict['is_child'] 	= False
 			referer_file_dict['is_child'] 	= False
 
+		# A file can be both a parent and child at the same time.
 		is_child = target_file_dict['is_child']
-		target_has_imports = False
+		is_parent = False
+
 		target_content = self.file_get_contents(target_file_dict['realpath'], False)
 		target_matches = self.re_method.findall(target_content)
 		target_partofs = []
@@ -417,6 +432,8 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 
 							if option_rec == 'true' or option_rec == '1':
 								option_rec = True
+							else:
+								option_rec = False
 
 							if option_val.lower() == 'default':
 								self.clear_jit_setting(option_key, option_rec, target_file_dict)
@@ -477,7 +494,7 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 						
 						continue
 
-					target_has_imports = True
+					is_parent = True
 					child_content = ''
 
 					# Look through the "written_file_dicts"-list in the memo and check that we haven't already parsed and written this file to disc.
@@ -516,9 +533,9 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 
 		# We handle parents and children almost exactly the same, but the user supplied settings can differ.
 		# Instead of doing more work in the name of clarity, we'll do half with variable variables.
-		write_to_disc = target_has_imports and not is_child
-		trim_type     = 'parents' if write_to_disc else 'children'
-		tpl_type      = 'parent' if write_to_disc else 'child'
+		write_to_disc = is_parent and (not is_child or self.setting(target_file_dict, 'write_nested_parents'))
+		trim_type     = 'parents' if is_parent else 'children'
+		tpl_type      = 'parent' if is_parent else 'child'
 
 		# Trim this file?
 		if self.setting(target_file_dict, 'trim_' + trim_type):
@@ -544,6 +561,8 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 
 		# Clear JIT-settings
 		self.clear_jit_setting(key = '*', recursive = (not is_child), file_dict = target_file_dict)
+
+		last_file_to_write = not is_child and not len(memo['partof_queue'])
 
 		# Parse all the 'partof'-references
 		if not is_child:
@@ -637,7 +656,6 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 
 		# See 1)
 		self.reset_instance()
-
 
 #
 # Event listener for post-save
