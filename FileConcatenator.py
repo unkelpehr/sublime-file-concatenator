@@ -11,7 +11,7 @@ MESSAGE_HEADER  = 'Sublime File Concatenator\n===========================\n\n'
 
 MSG_TYPE = {}
 MSG_TYPE['INFO'] 	= 1
-MSG_TYPE['WARNING'] 	= 2
+MSG_TYPE['WARNING'] = 2
 MSG_TYPE['ERROR'] 	= 3
 MSG_TYPE['FATAL'] 	= 4
 
@@ -358,7 +358,7 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 		if not saveto_file_dict and os.path.isfile(output_realpath) and target_file_dict['filename'] == output_filename:
 			return self.log(MSG_TYPE['FATAL'], 'A file already exist at the path specified and the name equals to the original. I will not continue at risk of overwriting the original.\n\nEvaluated filename:\n' + output_filename + '\n\nDirectory:\n' + target_file_dict['dirname'] + '\n\n' + 'Please look over your settings.', target_file_dict)
 
-		# If the source´s filename equals to the target, this means that this is the last write.
+		# If the source's filename equals to the target, this means that this is the last write.
 		# Depending on current settings, trim the content.
 		if (source_file_dict['filename'], target_file_dict['filename']) and self.setting(target_file_dict, 'trim_output'):
 			content = content.strip()
