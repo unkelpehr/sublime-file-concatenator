@@ -5,7 +5,7 @@ Automatically concatenates all dependencies based on simple rules you specify in
 
 **Main features:**
 
-1. Nested importing
+1. Nested importing using @import(*filepath*)
 2. File referencing: @partof(*filepath*)
 3. Importing through glob: @import('glob:components/*.js')
 4. "JIT-settings": @option('setting_key', 'new_setting_value')
