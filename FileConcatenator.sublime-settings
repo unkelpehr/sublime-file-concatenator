@@ -14,11 +14,11 @@
  * https://github.com/unkelpehr/sublime-file-concatenator
  */
 {
-    // If set to True, a dialog at the end of each concatenation will pop showing the details of the concatenation process
+    // If set to True, a dialog at the end of each concatenation will pop showing the details of the concatenation process.
     // This dialog will always be shown if an error was encountered
     "verbose": false,
 
-    // Whether or not to apply the same intendation to the target file as the @import-line has.
+    // If set to true, the indentation of the imported file will be the same as what the @import-line has.
     "apply_intendation": true,
 
     // Starts concatenation on file save
@@ -27,11 +27,17 @@
     // Which file extensions that will be included in the "run_on_save"-concatenation. 
     "run_on_save_extensions": ["js", "css"],
 
-    // If set to true, strips whitespace characters from the beginning and end before writing the finished concatenated file to disc.
+    // If set to true, strips whitespace characters from the beginning and end before inserting the referenced parent file into the concatination file.
     "trim_parents": true,
     
-    // If set to true, strips whitespace characters from the beginning and end before inserting the referenced file into the concatination file.
+    // If set to true, strips whitespace characters from the beginning and end before inserting the referenced child file into the concatination file.
     "trim_children": true,
+
+    // If set to true, strips whitespace characters from the beginning and end before writing the finished concatenated file to disc.
+    "trim_output": true,
+
+    // If set to true, all nested parents will also be written to disc
+    "write_nested_parents": false,
 
     // Date and time formats used in the templates
     // For complete directives please consult:
@@ -92,7 +98,7 @@
     // Available namespaces: this[X], referer[X], source[X], system[X], result[ ]
     "tpl_output_filename": "{{this.fileroot}}.cat.{{this.extension}}",
 
-    // 
+    // The message that appears in Sublimes status bar when concatenation has finished.
     // Available namespaces: this[ ], referer[ ], source[X], system[X], result[X]
     "tpl_status_message": "Concatenated {{result.num_referenced_files}} ({{result.referenced_files_size}}) files into {{result.written_filenames}} ({{result.runtime}} sec, {{result.num_reused_files}} reused}"
 }
