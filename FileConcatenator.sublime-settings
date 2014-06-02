@@ -1,218 +1,104 @@
-Sublime File Concatenator
--------------------------------------------------------------------------------------------------------------
+/**
+ * Sublime File Concatenator
+ * 
+ * Usage:
+ *      @import('dependency.js') will replace the @import-line with the contents of dependency.js
+ *      @partof('my_library.js') will replace the @import-line in my_library.js with the contents of the current file
+ *      @option('date_format', "%d/%m/%Y") will temporarily overwrite the specified plugin setting for the current file 
+ *      @option('date_format', "%d/%m/%Y", True) will temporarily overwrite the specified plugin setting for the current file and all of its children
+ *      @method('glob:/dir2/*') prefixing paths with 'glob:' will activate glob functionality
+ *      @saveto('../../lib.js') will traverse two directories up and save the current file as "lib.js"
+ *      @saveto('C:\wwwroot\') will save the current file as per the "tpl_output_filename"-setting, but in the wwwroot-folder
+ * 
+ * For a more in-depth explanation please visit the project's site:
+ * https://github.com/unkelpehr/sublime-file-concatenator
+ */
+{
+    // If set to True, a dialog at the end of each concatenation will pop showing the details of the concatenation process.
+    // This dialog will always be shown if an error was encountered
+    "verbose": false,
 
-Automatically concatenates all dependencies based on simple rules you specify in the referenced files.
+    // If set to true, the indentation of the imported file will be the same as what the @import-line has.
+    "apply_intendation": true,
 
-**Main features:**
+    // Starts concatenation on file save
+    "run_on_save": false,
 
-1. Nested importing
-2. File referencing: @partof(*filepath*)
-3. Importing through glob: @import('glob:components/*.js')
-4. "JIT-settings": @option('setting_key', 'new_setting_value')
-5. Per-file output-control: @saveto('../../lib.js')
-6. Generalized templating for controlling headers, footers, output filenames and more
-7. Compatible through Sublime 2.x to Sublime 3.x 
+    // Which file extensions that will be included in the "run_on_save"-concatenation. 
+    "run_on_save_extensions": ["js", "css"],
 
-## Getting started ##
+    // If set to true, strips whitespace characters from the beginning and end before inserting the referenced parent file into the concatination file.
+    "trim_parents": true,
+    
+    // If set to true, strips whitespace characters from the beginning and end before inserting the referenced child file into the concatination file.
+    "trim_children": true,
 
-### Using Package Control ###
-**(Not yet supported, hopefully in the future)**
-The easiest way to get started is to install the package using [Sublime Package Control](https://sublime.wbond.net/).
+    // If set to true, strips whitespace characters from the beginning and end before writing the finished concatenated file to disc.
+    "trim_output": true,
 
-Open the pallete by pressing *CTRL + SHIFT + P* (Win, Linux) or *CMD + SHIFT + P (OS X*). Type **install** and the command palette should filter down **Package Control: Install Package**.
-Select this command by either clicking on it, or using your cursor keys to highlight it and pressing Enter. 
+    // If set to true, all nested parents will also be written to disc
+    "write_nested_parents": false,
 
-In the pallete that follows type **Concat** and look for **File Concatenator**. Select this command in the same manner as before and when the installation is finished you are good to go!
+    // Date and time formats used in the templates
+    // For complete directives please consult:
+    // Sublime 2.x: https://docs.python.org/2/library/time.html?highlight=time#time.strftime
+    // Sublime 3.x: https://docs.python.org/3.3/library/time.html?highlight=time#time.strftime
+    "date_format": "%Y-%m-%d", // yyyy-mm-dd
+    "time_format": "%H:%M:%S", // hh-mm-ss
 
-## Manual install ##
-If you for some reason cannot or will not use [Package Control](https://sublime.wbond.net/), you can install the plugin manually be using the instructions below.
+    // Variables related to the concatenation is available and is specified in "{{mustache_style}}".
+    // 
+    // There are several namespaces to fetch information from, altough all are not accessable at all times.
+    // Check the individual template settings below to see which you can use.
+    // 
+    // Namespaces:
+    //      this:    Information about the file that is currently being handled
+    //      referer: Information about the file that refered the file that is currently being handled. If there is no referer, the this-namespace will be used instead.
+    //      source:  Information about the file that triggered the concatenation progress (i.e. the file you saved)
+    //      system:  Information about the environment, e.g. system.platform (window/linux/osx), system.arch (x32/x64)
+    //      result:  Information about the finished concatenation progress, e.g. result.runtime (0.03), result.num_referenced_files (3 files)
+    //
+    // The available variables are:
+    //      this/referer/source: {
+    //          dirname:        (C:\source)\file.js
+    //          filename:       C:\source\(file.js)
+    //          fileroot:       C:\source\(file).js
+    //          extension:      C:\source\file.(js)
+    //          realpath:       (C:\source\file.js)
+    //          working_dir:    As specified in the argument. The directory to start from.
+    //      }
+    //
+    //      system: {
+    //          time:           Returns the current time formatted as per the "time_format"-setting 
+    //          date:           Returns the current date formatted as per the "date_format"-setting
+    //          platform:       Returns the platform, which may be "osx", "linux" or "windows"
+    //          arch:           Returns the CPU architecture, which may be "x32" or "x64"
+    //          version:        Returns the current Sublime build number
+    //      }
+    //
+    //      result: {
+    //          num_referenced_files:   "1 file", "2 files"
+    //          referenced_files_size:  "19.4 KB"
+    //          written_filenames:      CSV containing the 3 first filenames that were written to disc, followed by "and x more", e.g. "'file1.js', 'file2.js', 'file3.js' and 3 more"
+    //          referenced_filenames:   CSV containing the 3 first filenames that was referenced in the progress, followed by "and x more", e.g. "'file1.js', 'file2.js', 'file3.js' and 3 more"
+    //          runtime:                Float representingen the number of seconds the whole concatenation progress took, e.g. "0.03", "1.43"
+    //      }
 
- 1. In Sublime, click the *Preferences > Browse Packages…* button in the menu
- 2. [Download the latest release](https://github.com/unkelpehr/sublime-file-concatenator/releases) 
- 3. Unpack it into the *Packages/* directory
- 3. Restart Sublime Text
+    // The header respectively footer templates gets inserted at the end and beginning of each concatenated file.
+    // Available namespaces: this[X], referer[/], source[X], system[X], result[ ]
+    "tpl_parent_header": "/**! BOF Parent file {{system.time}}: {{this.filename}} ({{this.filesize}}), referer: {{referer.filename}}, last modified {{this.lastmod_date}} {{this.lastmod_time}} */\n",
+    "tpl_parent_footer": "\n/**! EOF Parent file {{this.filename}} */\n\n",
 
-Personalize the settings by opening *Preferences > Package Settings > File Concatenator > Settings - Default* and copying them into *Preferences > Package Settings > File Concatenator > Settings - Default*.
+    // The header respectively footer templates gets inserted at the end and beginning of each imported file.
+    // Available namespaces: this[X], referer[X], source[X], system[X], result[ ]
+    "tpl_child_header": "/**! BOF {{system.time}}: {{this.filename}} ({{this.filesize}}), referer: {{referer.filename}}, last modified {{this.lastmod_date}} {{this.lastmod_time}} */\n",
+    "tpl_child_footer": "\n/**! EOF {{this.filename}} */\n\n",
 
-You can always define overwrite specific settings by using the @option method. 
+    // The template used for naming the output file
+    // Available namespaces: this[X], referer[X], source[X], system[X], result[ ]
+    "tpl_output_filename": "{{this.fileroot}}.cat.{{this.extension}}",
 
-## Documentation ##
-The plugin works by analysing the targeted file for certain commands. If found, it will be executed and stripped from the source code before writing the finished concatenated file. There are four commands available:
-
-###@import(*filepath*)###
-Replaces the @import(*filepath*)-line with the contents of *filepath*.
-
-**C:\wwwroot\main.js**
-```
-// Dependency1.js
-@import('components/dependency1.js')
-```
-
-**C:\wwwroot\components\dependency1.js**
-```
-+-----------------------------+
-|                             |
-| Hello! I am dependency1.js! |
-|                             |
-+-----------------------------+
-```
-
-**C:\wwwroot\main.cat.js**
-```
-// Dependency1.js
-+-----------------------------+
-|                             |
-| Hello! I am dependency1.js! |
-|                             |
-+-----------------------------+
-```
-
-###@partof(*filepath*)###
-Tells the interpreter to look for references of this file in *filepath*.
-This allows for the concatenation progress to start from both the parent (main.js) and the child (dependency1.js):
-
-**dependency1.js**
-```
-@partof('../main.js')
-+-----------------------------+
-|                             |
-| Hello! I am dependency1.js! |
-|                             |
-+-----------------------------+
-```
-
-###@saveto(*filepath*)###
-The default behaviour is to save the concatenated file in the same directory as the source file.
-You can easily specify an alternative path by using the @saveto-command:
-
-**C:\wwwroot\main.js**
-```
-// Dependency1.js
-@import('components/dependency1.js')
-@saveto('builds/main.js')
-```
-
-In the example above we also gave it a specific name. If we had just specified the 'builds/'-folder the name given had been as per the "tpl_output_filename-setting" (more on that below).
-
-If the directory does not exist the plugin will ask if you want it to create it for you.
-
-###@option(*key*, *value*, *recursive=False*)###
-Sublime File Concatenator has quite an extensive and very flexible settings file. But because of the nature of this plugin, all settings can't apply very good to all files and projects at all times.
-
-By using the @option-command you can temporarily overwrite the global plugin settings.
-Settings specified via @option only apply the file that is currently being handled and gets removed when the file has finished parsing or when a value of "default" has been passed.
-
-**C:\wwwroot\main.js**
-```
-// Dependency1.js
-@import('components/dependency1.js')
-@saveto('builds/') // Here we choose only to specify an directory for output
-@option('tpl_output_filename', '{{this.fileroot}}-{{system.date}}.{{this.extension}}')
-```
-
-**C:\wwwroot\builds\main-2014-05-26.js**
-```
-// Dependency1.js
-+-----------------------------+
-|                             |
-| Hello! I am dependency1.js! |
-|                             |
-+-----------------------------+
-```
-
-####Recursive flag####
-If we want all children to be affected by the JIT-setting we can turn on recursion by passing True as a third argument:
-
-**C:\wwwroot\main.js**
-```
-// Dependency1.js
-@import('components/dependency1.js')
-@saveto('builds/')
-@option('tpl_output_filename', '{{this.fileroot}}-{{system.date}}.{{this.extension}}')
-
-@option('tpl_child_header', '/**! BOF {{system.time}}: {{this.filename}} ({{this.filesize}}) */\n', True)
-@option('tpl_child_footer', '\n/**! EOF {{this.filename}} */\n\n', True)
-```
-
-**C:\wwwroot\builds\main-2014-05-26.js**
-```
-// Dependency1.js
-/**! BOF 19:48: dependency1.js (159.0 B) */
-+-----------------------------+
-|                             |
-| Hello! I am dependency1.js! |
-|                             |
-+-----------------------------+
-/**! EOF dependency1.js */
-```
-
-###glob:###
-This magic prefix activates [Python's glob module](https://docs.python.org/2/library/glob.html) and passes your argument directly to it. Whatever comes out, gets imported.
-
-**C:\wwwroot\main.js**
-```
-// My dependencies:
-@import('glob:components/*.js') // Import all Javascript-files in the components-directory 
-@saveto('builds/')
-@option('tpl_output_filename', '{{this.fileroot}}-{{system.date}}.{{this.extension}}')
-```
-**C:\wwwroot\builds\main-2014-05-26.js**
-```
-// My dependencies:
-+-----------------------------+
-|                             |
-| Hello! I am dependency1.js! |
-|                             |
-+-----------------------------+
-+-----------------------------+
-|                             |
-| Hello! I am dependency2.js! |
-|                             |
-+-----------------------------+
-```
-
-###Starting the concatenation process###
-*CTRL + SHIFT + C* or *CMD + Shift + C* will start the concatenation process. You can also specify concatenation on Save, read more under the Settings-section below.
-
-###The settings file###
-1. Open  the default settings via *Preferences -> Package Settings -> File Concatenator -> Settings - Default*.
-2. Copy the contents into *Preferences -> Package Settings -> File Concatenator -> Settings - User*
-
-There is *a lot* of documentation in the settings file. Don't be put of though, it's actually really easy.
-
-## Contribute! ##
- 1. Fork it.
- 2. Create a branch (git checkout -b sublime_file_concatenator)
- 3. Commit your changes (git commit -am "Fixed regex...")
- 4. Push to the branch (git push origin sublime_file_concatenator)
- 5. Open a Pull Request
- 5. Tada!
-
-## Changelog ##
-###v0.9.5###
- 1. Removed 'popup_files_not_found'-setting *(this will always pop if warnings occur)*
- 2. Added *trim_parents*-setting
- 3. Added *trim_children*-setting
- 4. Added *trim_output*-setting
- 5. Added *date_format*-setting
- 6. Added *time_format*-setting
- 7. Added {{mustasche_style}}-templating options accessable via the settings, with a great number of namespaced variables.
- 8. Added @saveto-method
- 9. Added @option-method
- 10. Added glob:-prefix
- 11. Added multi-level @import
- 12. Added optimizations which greatly improved overall runtime
- 13. Added support for Sublime 3 Beta
-     
-###v0.8.5###
- 1. Added changelog
- 2. Added popup for referenced files that could not be found.
- 3. Added 'popup_files_not_found'-setting
- 4. Added tests
- 5. Fixed bug that didn't reset certain variables each run
- 6. Cleaned up the regex's and the general code a bit
- 7. **Added support for multi-level @partof**
-
-
-###v0.8.0###
-Initial release
+    // The message that appears in Sublimes status bar when concatenation has finished.
+    // Available namespaces: this[ ], referer[ ], source[X], system[X], result[X]
+    "tpl_status_message": "Concatenated {{result.num_referenced_files}} ({{result.referenced_files_size}}) files into {{result.written_filenames}} ({{result.runtime}} sec, {{result.num_reused_files}} reused}"
+}
