@@ -1,5 +1,5 @@
 /**
- * Sublime File Concatenator
+ * File Concatenator
  * 
  * Usage:
  *      @import('dependency.js') will replace the @import-line with the contents of dependency.js
