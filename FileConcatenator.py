@@ -316,7 +316,7 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 						value = self.format_bytes(owner['referenced_file_bytes'])
 					elif key == 'written_filenames':
 						tmp = len(owner['written_file_dicts'])
-						value = ', '.join(["'" + fdict['filename'] + "'" for fdict in owner['written_file_dicts'][:display_x_files]])
+						value = ', '.join(["'" + fdict['output_filename'] + "'" for fdict in owner['written_file_dicts'][:display_x_files]])
 						value += (' and ' + str(tmp - display_x_files) + ' more') if tmp > display_x_files else ''
 					elif key == 'referenced_filenames':
 						tmp = len(owner['referenced_file_dicts'])
