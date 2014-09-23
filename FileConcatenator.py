@@ -400,6 +400,9 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 		self.log(MSG_TYPE['INFO'], 'Started parsing ' + ('child' if is_child else 'parent'), target_file_dict)
 
 		# Reset saveto-variables. This can be filled via the @saveto
+		saveto_file_dicts = []
+
+		# Temporary file_dict holder (gets appended to saveto_file_dicts is successful)
 		saveto_file_dict = False
 
 		if len(target_matches) > 0:
@@ -468,6 +471,10 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 											self.log(MSG_TYPE['FATAL'], exc, target_file_dict)
 											saveto_file_dict = False
 											raise
+
+							# Append to lists of successful
+							if saveto_file_dict:
+								saveto_file_dicts.append(saveto_file_dict)
 						else:
 							self.log(MSG_TYPE['WARNING'], 'Malformed @saveto method: "' + fullmatch + '"', target_file_dict)
 
@@ -553,9 +560,15 @@ class ConcatenatorCommand(sublime_plugin.TextCommand):
 		if header or footer:
 			target_content = header + target_content + footer
 
+		# Write the file(s), save the name in the file_dict and add it to the memo
 		if write_to_disc:
-			# Write the file, save the name in the file_dict and add it to the memo
-			memo['written_file_dicts'].append(self.write(memo['source_file_dict'], target_file_dict, referer_file_dict, target_content, saveto_file_dict))
+			# If there is no "saveto"`s; pass False
+			if len(saveto_file_dicts) == 0:
+				memo['written_file_dicts'].append(self.write(memo['source_file_dict'], target_file_dict, referer_file_dict, target_content, False))
+			else:
+				# Loop through all save_to_file_dicts, writing each one.
+				while len(saveto_file_dicts) > 0:
+					memo['written_file_dicts'].append(self.write(memo['source_file_dict'], target_file_dict, referer_file_dict, target_content, saveto_file_dicts.pop(0)))
 
 		self.log(MSG_TYPE['INFO'], 'Finished parsing', target_file_dict)
 

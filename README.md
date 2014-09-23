@@ -96,6 +96,16 @@ In the example above we also gave it a specific name. If we had just specified t
 
 If the directory does not exist the plugin will ask if you want it to create it for you.
 
+You can @saveto as many paths as you like by just passing the command multiple times: 
+**C:\wwwroot\main.js**
+```
+// Dependency1.js
+@import('components/dependency1.js')
+@saveto('builds/main.js')
+@saveto('../../otherproject/vendor/dependency.js')
+@saveto('\\server\shared\latest\stuff.js')
+```
+
 ###@option(*key*, *value*, *recursive=False*)###
 Sublime File Concatenator has very a extensive and flexible settings file. But because of the nature of this plugin, all settings can't apply very good to all files and projects at all times.
 

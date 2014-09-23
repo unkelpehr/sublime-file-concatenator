@@ -10,6 +10,8 @@
  *      @saveto('../../lib.js') will traverse two directories up and save the current file as "lib.js"
  *      @saveto('C:\wwwroot\') will save the current file as per the "tpl_output_filename"-setting, but in the wwwroot-folder
  * 
+ *      You can also @saveto multiple directories. The result of the two last methods above would save to both '../../lib.js' and 'C:\wwwroot\'.
+ * 
  * For a more in-depth explanation please visit the project's site:
  * https://github.com/unkelpehr/sublime-file-concatenator
  */
