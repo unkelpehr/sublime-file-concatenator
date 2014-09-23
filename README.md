@@ -199,6 +199,10 @@ There is *a lot* of documentation in the settings file. Don't be put of though, 
  5. Tada!
 
 ## Changelog ##
+###v0.9.7###
+ 1. Fixed an issue where the file communicated as written actually was a file containing one or more "@saveto" statements.
+ 2. Added support for multiple @saveto`s.
+
 ###v0.9.5###
  1. Removed 'popup_files_not_found'-setting *(this will always pop if warnings occur)*
  2. Added *trim_parents*-setting
